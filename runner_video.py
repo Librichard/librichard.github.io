@@ -5,7 +5,6 @@ from random import randint ,choice
 class Player(pygame.sprite.Sprite):
 	def __init__(self):
 		super().__init__()
-
 		player_walk_1 = pygame.image.load('graphics/player/player_walk_1.png').convert_alpha()
 		player_walk_2 = pygame.image.load('graphics/player/player_walk_2.png').convert_alpha()
 		self.player_walk = [player_walk_1 ,player_walk_2]
