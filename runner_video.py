@@ -2,6 +2,7 @@ import pygame
 from sys import exit
 from random import randint ,choice
 
+########
 class Player(pygame.sprite.Sprite):
 	def __init__(self):
 		super().__init__()
@@ -42,13 +43,17 @@ class Player(pygame.sprite.Sprite):
 		self.apply_gravity()
 		self.update_animation()
 
+########
 class Obstacle(pygame.sprite.Sprite):
 	def __init__(self):
 		super().__init__()
 		
 		self.animation_index = 0
+		self.set_image()
 		self.image = self.frames[self.animation_index]
 		self.rect = self.image.get_rect(midbottom = (randint(900 ,1100) ,self.y_pos))
+
+	def set_image(self): None
 
 	def update_animation(self):
 		self.animation_index += 0.1 
@@ -66,22 +71,35 @@ class Obstacle(pygame.sprite.Sprite):
 		self.update_position()
 		self.destroy()
 
-class Fly(Obstacle):
-	def __init__(self):
-		super.__init__()
-		fly_1 = pygame.image.load('graphics/fly/fly1.png').convert_alpha()
-		fly_2 = pygame.image.load('graphics/fly/fly2.png').convert_alpha()
-		self.frames = [fly_1 ,fly_2]
-		self.y_pos = 210
-
+########
 class Snail(Obstacle):
-	def __init__(self):
-		super().__init__()
+	def set_image(self):
 		snail_1 = pygame.image.load('graphics/snail/snail1.png').convert_alpha()
 		snail_2 = pygame.image.load('graphics/snail/snail2.png').convert_alpha()
 		self.frames = [snail_1 ,snail_2]
 		self.y_pos = 300
 
+	def update_animation(self):
+		for event in pygame.event.get():
+			if event.type == snail_animation_timer:
+				if self.animation_index == 0:	self.animation_index = 1
+				else:	self.animation_index = 0
+
+########
+class Fly(Obstacle):
+	def set_image(self):
+		fly_1 = pygame.image.load('graphics/fly/fly1.png').convert_alpha()
+		fly_2 = pygame.image.load('graphics/fly/fly2.png').convert_alpha()
+		self.frames = [fly_1 ,fly_2]
+		self.y_pos = 210
+
+	def update_animation(self):
+		for event in pygame.event.get():
+			if event.type == fly_animation_timer:
+				if super.animation_index == 0:	super.animation_index = 1
+				else:	super.animation_index = 0
+
+################################################################
 pygame.init()
 pygame.display.set_caption('Runner')
 screen = pygame.display.set_mode((800 ,400))
@@ -125,6 +143,7 @@ pygame.time.set_timer(snail_animation_timer ,500)
 fly_animation_timer = pygame.USEREVENT + 3
 pygame.time.set_timer(fly_animation_timer ,200)
 
+########################
 def display_score():
 	current_time = int(pygame.time.get_ticks() / 1000) - start_time
 	score_surf = prompt_font.render(f'Score: {current_time}' ,False ,(64 ,64 ,64))
@@ -159,6 +178,7 @@ def collision_sprite():
 		return False
 	else:	return True
 
+########################
 while True:
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT:
@@ -167,10 +187,10 @@ while True:
 
 		if game_active:
 			if event.type == pygame.MOUSEBUTTONDOWN:
-				if player.rect.collidepoint(event.pos) and player.rect.bottom >= 300:	player_gravity = -20
+				if player.rect.collidepoint(event.pos) and player.sprite.rect.bottom >= 300:	player_gravity = -20
 			
 			if event.type == pygame.KEYDOWN:
-				if event.key == pygame.K_SPACE and player.rect.bottom >= 300:	player_gravity = -20
+				if event.key == pygame.K_SPACE and player.sprite.rect.bottom >= 300:	player_gravity = -20
 		else:
 			if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
 				game_active = True
@@ -178,19 +198,6 @@ while True:
 
 		if game_active:
 			if event.type == obstacle_timer:	obstacle_group.add(Fly() if choice(['fly' ,'snail' ,'snail' ,'snail']) == 'fly' else Snail())
-
-			if event.type == snail_animation_timer:
-				if snail_frame_index == 0:	snail_frame_index = 1
-				else:	snail_frame_index = 0
-
-				snail_surf = snail.frames[snail_frame_index]
-
-
-			if event.type == fly_animation_timer:
-				if fly_frame_index == 0:	fly_frame_index = 1
-				else:	fly_frame_index = 0
-
-				fly_surf = fly.frames[fly_frame_index]
 
 	if game_active:
 		screen.blit(sky_surface ,(0 ,0))
@@ -226,7 +233,7 @@ while True:
 		screen.fill((94 ,129 ,162))
 		screen.blit(player_stand ,player_stand_rect)
 		obstacle_rect_list.clear()
-		player.rect.midbottom = (80 ,300)
+		player.sprite.rect.midbottom = (80 ,300)
 		player_gravity = 0
 
 		score_message = prompt_font.render(f'Your score: {score}' ,False ,(111 ,196 ,169))
